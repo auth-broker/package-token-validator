@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from uuid_extensions import uuid7  # just to generate a fake sub/id
 
-from obo_core.token_validator.token_validators.oidc import OIDCTokenValidator
+from ab_core.token_validator.token_validators.oidc import OIDCTokenValidator
 
 
 @pytest.mark.asyncio
@@ -46,11 +46,11 @@ async def test_oidc_token_validator():
             new=AsyncMock(return_value={"keys": [{"kid": "test-kid"}]}),
         ),
         patch(
-            "obo_core.token_validator.token_validators.oidc.jwt.get_unverified_header",
+            "ab_core.token_validator.token_validators.oidc.jwt.get_unverified_header",
             return_value={"kid": "test-kid"},
         ) as mock_get_header,
         patch(
-            "obo_core.token_validator.token_validators.oidc.jwt.decode",
+            "ab_core.token_validator.token_validators.oidc.jwt.decode",
             return_value=dummy_claims,
         ) as mock_jwt_decode,
     ):

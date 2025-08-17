@@ -2,8 +2,8 @@ import os
 from typing import Annotated
 from unittest.mock import patch
 
-from obo_core.dependency import Depends, inject
-from obo_core.token_validator.token_validators import OIDCTokenValidator, TokenValidator
+from ab_core.dependency import Depends, inject
+from ab_core.token_validator.token_validators import OIDCTokenValidator, TokenValidator
 
 
 def test_token_validator_dependency():
