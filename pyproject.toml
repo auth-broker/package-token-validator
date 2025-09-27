@@ -6,7 +6,7 @@ requires = ["hatchling"]
 dev = [
   "debugpy>=1.8.14,<2",
   "isort>=6.0.1,<7",
-  "ab-test-fixtures",
+  # "ab-test-fixtures",
   "pre-commit>=4.2.0,<5",
   "pytest-asyncio>=1.0.0,<2",
   "pytest-cov>=6.2.1,<7",
@@ -21,7 +21,7 @@ dependencies = [
   "aiocache>=0.12.3,<0.13",
   "fastapi>=0.115.14,<0.116",
   "httpx>=0.28.1,<0.29",
-  "ab-dependency",
+  # "ab-dependency",
   "pydantic>=2.11.7,<3",
   "python-jose[cryptography]>=3.5.0,<4",
   "uuid7>=0.1.0,<0.2",
@@ -33,9 +33,9 @@ readme = "README.md"
 requires-python = ">=3.12, <4"
 version = "0.1.1"
 
-[tool.uv.sources]
-ab-dependency  = { git = "https://@github.com/auth-broker/package-dependency", tag= "0.1.2" }
-ab-test-fixtures  = { git = "https://@github.com/auth-broker/package-test-fixtures", tag= "0.1.1" }
+# [tool.uv.sources]
+# ab-dependency  = { git = "https://@github.com/auth-broker/package-dependency", tag= "0.1.2" }
+# ab-test-fixtures  = { git = "https://@github.com/auth-broker/package-test-fixtures", tag= "0.1.1" }
 
 [tool.hatch.build.targets.sdist]
 include = ["src/ab_core"]
