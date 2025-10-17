@@ -19,7 +19,7 @@ dev = [
 authors = [{email = "53892067+mattcoulter7@users.noreply.github.com", name = "Matthew Coulter"}]
 dependencies = [
   "aiocache>=0.12.3,<0.13",
-  "fastapi>=0.115.14,<0.116",
+  "fastapi>=0.115.14,<0.120",
   "httpx>=0.28.1,<0.29",
   "ab-dependency>=0.1.4,<1",
   "pydantic>=2.11.7,<3",
