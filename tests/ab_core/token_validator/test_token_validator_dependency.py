@@ -34,3 +34,9 @@ def test_token_validator_dependency():
         assert str(validator_instance.jwks_uri) == "https://issuer.example.com/jwks"
         assert validator_instance.audience == ["my-client-id"]
         assert validator_instance.algorithms == ["RS256", "ES256"]
+        # Check default values for verification fields
+        assert validator_instance.verify_signature == True
+        assert validator_instance.verify_aud == True
+        assert validator_instance.verify_exp == True
+        assert validator_instance.require_aud == False
+        assert validator_instance.leeway == 0
