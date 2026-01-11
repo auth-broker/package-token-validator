@@ -9,7 +9,6 @@ from ab_core.token_validator.token_validators.oidc import OIDCTokenValidator
 @pytest.mark.asyncio
 async def test_oidc_token_validator():
     """Ensure `validate()` returns a typed claims model when everything lines up."""
-
     # ── Arrange ──────────────────────────────────────────────────────────
     validator = OIDCTokenValidator(
         issuer="https://issuer.example.com/",

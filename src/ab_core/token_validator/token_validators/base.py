@@ -7,8 +7,7 @@ ValidatedType = TypeVar("ValidatedType")
 
 
 class TokenValidatorBase(BaseModel, Generic[ValidatedType], ABC):
-    """
-    Abstract base for any token validator.
+    """Abstract base for any token validator.
 
     Generic on the validated return type.
     Also a Pydantic model, so you get:
@@ -18,8 +17,7 @@ class TokenValidatorBase(BaseModel, Generic[ValidatedType], ABC):
 
     @abstractmethod
     async def validate(self, token: str) -> ValidatedType:
-        """
-        Validate a raw token string and return a structured result.
+        """Validate a raw token string and return a structured result.
         Should raise on failure.
         """
         ...

@@ -6,9 +6,6 @@ from .oidc import OIDCTokenValidator
 from .template import TemplateTokenValidator
 
 TokenValidator = Annotated[
-    Union[
-        OIDCTokenValidator,
-        TemplateTokenValidator,
-    ],
+    OIDCTokenValidator | TemplateTokenValidator,
     Discriminator("type"),
 ]

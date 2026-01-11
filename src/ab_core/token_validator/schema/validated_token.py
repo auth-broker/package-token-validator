@@ -1,4 +1,3 @@
-from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -6,17 +5,17 @@ from pydantic import BaseModel
 class ValidatedOIDCClaims(BaseModel):
     iss: str
     sub: str
-    aud: str | List[str]
+    aud: str | list[str]
     exp: int
     iat: int
     auth_time: int
     acr: str
 
     # New fields
-    email: Optional[str] = None
-    email_verified: Optional[bool] = None
-    name: Optional[str] = None
-    given_name: Optional[str] = None
-    preferred_username: Optional[str] = None
-    nickname: Optional[str] = None
-    groups: Optional[List[str]] = None
+    email: str | None = None
+    email_verified: bool | None = None
+    name: str | None = None
+    given_name: str | None = None
+    preferred_username: str | None = None
+    nickname: str | None = None
+    groups: list[str] | None = None

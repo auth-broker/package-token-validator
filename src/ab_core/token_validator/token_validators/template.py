@@ -6,8 +6,7 @@ from .base import TokenValidatorBase
 
 
 class TemplateTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
-    """
-    Validates a JWT from an OIDC provider
+    """Validates a JWT from an OIDC provider
     and returns a ValidatedOIDCClaims model.
     """
 
