@@ -20,7 +20,7 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
 
     issuer: HttpUrl
     jwks_uri: AnyHttpUrl
-    audience: str | Sequence[str]
+    audience: str
     algorithms: list[str] = Field(default_factory=lambda: ["RS256"])
 
     verify_signature: bool = Field(
@@ -95,10 +95,6 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
         default=0,
         description="The leeway in seconds for time-based claims.",
     )
-
-    @field_validator("audience", mode="before")
-    def normalize_audience(cls, v) -> List[str]:
-        return list(v) if isinstance(v, (list, tuple, set)) else [str(v)]
 
     @cached(ttl=300, cache=SimpleMemoryCache)
     async def _get_jwks(self) -> dict:
