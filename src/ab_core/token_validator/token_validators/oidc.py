@@ -1,10 +1,10 @@
 from collections.abc import Sequence
-from typing import Literal
+from typing import List, Literal
 
 import httpx
 from aiocache import SimpleMemoryCache, cached
 from jose import JWTError, jwt
-from pydantic import AnyHttpUrl, Field, HttpUrl
+from pydantic import AnyHttpUrl, Field, HttpUrl, field_validator
 
 from ..schema.token_validator_type import TokenValidatorType
 from ..schema.validated_token import ValidatedOIDCClaims
@@ -96,9 +96,9 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
         description="The leeway in seconds for time-based claims.",
     )
 
-    # @field_validator("audience", mode="before")
-    # def normalize_audience(cls, v: Union[str, Sequence[str]]) -> List[str]:
-    #     return list(v) if isinstance(v, (list, tuple, set)) else [str(v)]
+    @field_validator("audience", mode="before")
+    def normalize_audience(cls, v) -> List[str]:
+        return list(v) if isinstance(v, (list, tuple, set)) else [str(v)]
 
     @cached(ttl=300, cache=SimpleMemoryCache)
     async def _get_jwks(self) -> dict:
