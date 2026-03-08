@@ -132,9 +132,11 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
         """Validate the given JWT and return a ValidatedOIDCClaims model."""
         jwks = await self._get_jwks()
         header = jwt.get_unverified_header(token)
-        key = next((k for k in jwks["keys"] if k.get("kid") == header.get("kid")), None)
-        if key is None:
+        jwk_data = next((k for k in jwks["keys"] if k.get("kid") == header.get("kid")), None)
+        if jwk_data is None:
             raise jwt.exceptions.PyJWKSetError("No matching 'kid' found in JWKS")
+
+        key = jwt.PyJWK(jwk_data=jwk_data).key
 
         claims_dict = jwt.decode(
             token,
