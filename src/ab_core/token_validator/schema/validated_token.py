@@ -1,13 +1,17 @@
+"""Validated token models and schemas."""
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
 class AKProxyUserAttributes(BaseModel):
     """Authentik proxy user attributes, typically set via user/group attribute policies."""
+
     model_config = ConfigDict(extra="allow")
 
 
 class AKProxy(BaseModel):
     """Authentik-specific proxy metadata injected into tokens by the ak_proxy scope."""
+
     model_config = ConfigDict(extra="allow")
 
     user_attributes: AKProxyUserAttributes = Field(
@@ -23,12 +27,12 @@ class AKProxy(BaseModel):
 
 
 class ValidatedOIDCClaims(BaseModel):
-    """
-    Validated claims from an OIDC JWT issued by Authentik.
+    """Validated claims from an OIDC JWT issued by Authentik.
 
     Covers standard OIDC claims (RFC 7519 / OIDC Core 1.0) as well as
     Authentik-specific extensions such as `ak_proxy`, `entitlements`, and `roles`.
     """
+
     model_config = ConfigDict(extra="allow")
 
     # ── Standard JWT claims (RFC 7519) ────────────────────────────────────────
@@ -62,7 +66,10 @@ class ValidatedOIDCClaims(BaseModel):
     )
     acr: str = Field(
         title="Authentication Context Class Reference",
-        description="Identifies the authentication context class. Authentik uses 'goauthentik.io/providers/oauth2/default' by default.",
+        description=(
+            "Identifies the authentication context class. "
+            "Authentik uses 'goauthentik.io/providers/oauth2/default' by default."
+        ),
     )
 
     # ── OIDC profile claims (optional) ────────────────────────────────────────
@@ -119,7 +126,9 @@ class ValidatedOIDCClaims(BaseModel):
     groups: list[str] = Field(
         default_factory=list,
         title="Groups",
-        description="Authentik groups the user belongs to. Informational — authorisation should use entitlements or roles.",
+        description=(
+            "Authentik groups the user belongs to. Informational — authorisation should use entitlements or roles."
+        ),
     )
 
     # ── Authentik-specific claims ─────────────────────────────────────────────
@@ -127,5 +136,8 @@ class ValidatedOIDCClaims(BaseModel):
     ak_proxy: AKProxy | None = Field(
         default=None,
         title="Authentik Proxy Metadata",
-        description="Authentik-specific metadata injected when using the ak_proxy scope, including user attributes and superuser status.",
+        description=(
+            "Authentik-specific metadata injected when using the ak_proxy scope, "
+            "including user attributes and superuser status."
+        ),
     )

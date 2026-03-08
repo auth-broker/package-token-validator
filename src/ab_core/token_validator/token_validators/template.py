@@ -1,3 +1,5 @@
+"""Template token validator implementation."""
+
 from typing import Literal
 
 from ..schema.token_validator_type import TokenValidatorType
@@ -6,11 +8,13 @@ from .base import TokenValidatorBase
 
 
 class TemplateTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
-    """Validates a JWT from an OIDC provider
-    and returns a ValidatedOIDCClaims model.
+    """Validates a JWT from an OIDC provider.
+
+    Returns a ValidatedOIDCClaims model.
     """
 
     type: Literal[TokenValidatorType.TEMPLATE] = TokenValidatorType.TEMPLATE
 
     async def validate(self, token: str) -> ValidatedOIDCClaims:
+        """Validate a token and return validated OIDC claims."""
         raise NotImplementedError()

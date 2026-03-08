@@ -1,3 +1,5 @@
+"""Tests for token validator dependency injection."""
+
 import os
 from typing import Annotated
 from unittest.mock import patch
@@ -5,20 +7,29 @@ from unittest.mock import patch
 from ab_core.dependency import Depends, inject
 from ab_core.token_validator.token_validators import OIDCTokenValidator, TokenValidator
 
+ISSUER_1 = "https://issuer.example.com/"
+ISSUER_2 = "https://issuer-n8n.example.com/"
+
+ISSUERS_JSON = (
+    "["
+    f'{{"issuer":"{ISSUER_1}","jwks_uri":"{ISSUER_1}jwks","audience":["my-client-id"]}},'
+    f'{{"issuer":"{ISSUER_2}","jwks_uri":"{ISSUER_2}jwks","audience":["n8n-client-id"]}}'
+    "]"
+)
+
 
 def test_token_validator_dependency():
+    """Test that the token validator can be injected as a dependency."""
     with patch.dict(
         os.environ,
         {
             "TOKEN_VALIDATOR_TYPE": "OIDC",
-            "TOKEN_VALIDATOR_OIDC_ISSUER": "https://issuer.example.com",
-            "TOKEN_VALIDATOR_OIDC_JWKS_URI": "https://issuer.example.com/jwks",
-            "TOKEN_VALIDATOR_OIDC_AUDIENCE": '["my-client-id"]',
+            "TOKEN_VALIDATOR_OIDC_ISSUERS": ISSUERS_JSON,
             "TOKEN_VALIDATOR_OIDC_ALGORITHMS": '["RS256","ES256"]',
         },
         clear=False,
     ):
-        # test function
+
         @inject
         def some_func(
             token_validator: Annotated[TokenValidator, Depends(TokenValidator, persist=True)],
@@ -27,16 +38,32 @@ def test_token_validator_dependency():
 
         validator_instance = some_func()
 
-        # Assert that the returned dependency is of the expected type
+        # Assert correct type
         assert isinstance(validator_instance, OIDCTokenValidator)
-        # And that it loaded values from the env
-        assert str(validator_instance.issuer) == "https://issuer.example.com/"
-        assert str(validator_instance.jwks_uri) == "https://issuer.example.com/jwks"
-        assert validator_instance.audience == ["my-client-id"] or validator_instance.audience == "my-client-id"
+
+        # Assert issuers loaded correctly
+        assert len(validator_instance.issuers) == 2
+
+        issuer_1 = validator_instance.issuers[0]
+        assert str(issuer_1.issuer) == ISSUER_1
+        assert str(issuer_1.jwks_uri) == f"{ISSUER_1}jwks"
+        assert issuer_1.audience == ["my-client-id"]
+
+        issuer_2 = validator_instance.issuers[1]
+        assert str(issuer_2.issuer) == ISSUER_2
+        assert str(issuer_2.jwks_uri) == f"{ISSUER_2}jwks"
+        assert issuer_2.audience == ["n8n-client-id"]
+
+        # Assert issuer map is built correctly
+        assert ISSUER_1 in validator_instance._issuer_map
+        assert ISSUER_2 in validator_instance._issuer_map
+
+        # Assert algorithms loaded correctly
         assert validator_instance.algorithms == ["RS256", "ES256"]
-        # Check default values for verification fields
-        assert validator_instance.verify_signature == True
-        assert validator_instance.verify_aud == True
-        assert validator_instance.verify_exp == True
-        assert validator_instance.require_aud == False
+
+        # Assert defaults
+        assert validator_instance.verify_signature is True
+        assert validator_instance.verify_aud is True
+        assert validator_instance.verify_exp is True
+        assert validator_instance.require_aud is False
         assert validator_instance.leeway == 0
