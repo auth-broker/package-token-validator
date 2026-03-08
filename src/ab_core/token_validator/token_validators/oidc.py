@@ -1,10 +1,12 @@
-from collections.abc import Sequence
-from typing import List, Literal
+from functools import cached_property
+from typing import Literal
 
 import httpx
+import jwt
+import jwt.exceptions
+import jwt.types
 from aiocache import SimpleMemoryCache, cached
-from jose import JWTError, jwt
-from pydantic import AnyHttpUrl, Field, HttpUrl, field_validator
+from pydantic import AnyHttpUrl, Field, HttpUrl, computed_field
 
 from ..schema.token_validator_type import TokenValidatorType
 from ..schema.validated_token import ValidatedOIDCClaims
@@ -20,45 +22,46 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
 
     issuer: HttpUrl
     jwks_uri: AnyHttpUrl
-    audience: str
+    audience: str | list[str]
     algorithms: list[str] = Field(default_factory=lambda: ["RS256"])
 
     verify_signature: bool = Field(
         default=True,
         description="Whether to verify the JWT signature.",
     )
+    strict_aud: bool = Field(
+        default=False,
+        description="Check that the `aud` claim is a single value (not a list), and matches `audience` exactly.",
+    )
     verify_aud: bool = Field(
         default=True,
         description="Whether to verify the 'aud' (audience) claim.",
-    )
-    verify_iat: bool = Field(
-        default=True,
-        description="Whether to verify the 'iat' (issued at) claim.",
     )
     verify_exp: bool = Field(
         default=True,
         description="Whether to verify the 'exp' (expiration) claim.",
     )
-    verify_nbf: bool = Field(
+    verify_iat: bool = Field(
         default=True,
-        description="Whether to verify the 'nbf' (not before) claim.",
+        description="Whether to verify the 'iat' (issued at) claim.",
     )
     verify_iss: bool = Field(
         default=True,
         description="Whether to verify the 'iss' (issuer) claim.",
     )
-    verify_sub: bool = Field(
-        default=True,
-        description="Whether to verify the 'sub' (subject) claim.",
-    )
     verify_jti: bool = Field(
         default=True,
         description="Whether to verify the 'jti' (JWT ID) claim.",
     )
-    verify_at_hash: bool = Field(
+    verify_nbf: bool = Field(
         default=True,
-        description="Whether to verify the 'at_hash' claim.",
+        description="Whether to verify the 'nbf' (not before) claim.",
     )
+    verify_sub: bool = Field(
+        default=True,
+        description="Whether to verify the 'sub' (subject) claim.",
+    )
+
     require_aud: bool = Field(
         default=False,
         description="Whether the 'aud' claim is required.",
@@ -87,37 +90,60 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
         default=False,
         description="Whether the 'jti' claim is required.",
     )
-    require_at_hash: bool = Field(
+    enforce_minimum_key_length: bool = Field(
         default=False,
-        description="Whether the 'at_hash' claim is required.",
+        description="Raise `jwt.exceptions.InvalidKeyError` instead of warning when keys are below minimum recommended length.",
     )
     leeway: int = Field(
         default=0,
         description="The leeway in seconds for time-based claims.",
     )
 
+    @computed_field(return_type=list[str])
+    @cached_property
+    def required_claims(self) -> list[str]:
+        """Compute the list of required claims based on the `require_*` boolean fields."""
+        required_claims = []
+        if self.require_aud:
+            required_claims.append("aud")
+        if self.require_iat:
+            required_claims.append("iat")
+        if self.require_exp:
+            required_claims.append("exp")
+        if self.require_nbf:
+            required_claims.append("nbf")
+        if self.require_iss:
+            required_claims.append("iss")
+        if self.require_sub:
+            required_claims.append("sub")
+        if self.require_jti:
+            required_claims.append("jti")
+        return required_claims
+
     @cached(ttl=300, cache=SimpleMemoryCache)
     async def _get_jwks(self) -> dict:
+        """Fetch the JWKS from the `jwks_uri`. Cached for 5 minutes to avoid excessive calls."""
         async with httpx.AsyncClient() as client:
             resp = await client.get(self.jwks_uri.encoded_string(), timeout=5)
             resp.raise_for_status()
             return resp.json()
 
     async def validate(self, token: str) -> ValidatedOIDCClaims:
+        """Validate the given JWT and return a ValidatedOIDCClaims model."""
         jwks = await self._get_jwks()
         header = jwt.get_unverified_header(token)
         key = next((k for k in jwks["keys"] if k.get("kid") == header.get("kid")), None)
         if key is None:
-            raise JWTError("No matching 'kid' found in JWKS")
+            raise jwt.exceptions.PyJWKSetError("No matching 'kid' found in JWKS")
 
         claims_dict = jwt.decode(
             token,
             key=key,
             algorithms=self.algorithms,
-            audience=self.audience,
-            issuer=str(self.issuer),
-            options=dict(
+            options=jwt.types.Options(
                 verify_signature=self.verify_signature,
+                require=self.required_claims,
+                strict_aud=self.strict_aud,
                 verify_aud=self.verify_aud,
                 verify_iat=self.verify_iat,
                 verify_exp=self.verify_exp,
@@ -125,17 +151,10 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
                 verify_iss=self.verify_iss,
                 verify_sub=self.verify_sub,
                 verify_jti=self.verify_jti,
-                verify_at_hash=self.verify_at_hash,
-                require_aud=self.require_aud,
-                require_iat=self.require_iat,
-                require_exp=self.require_exp,
-                require_nbf=self.require_nbf,
-                require_iss=self.require_iss,
-                require_sub=self.require_sub,
-                require_jti=self.require_jti,
-                require_at_hash=self.require_at_hash,
-                leeway=self.leeway,
             ),
+            audience=self.audience,
+            issuer=str(self.issuer),
+            leeway=self.leeway,
         )
 
         return ValidatedOIDCClaims.model_validate(claims_dict)

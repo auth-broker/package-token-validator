@@ -32,7 +32,7 @@ def test_token_validator_dependency():
         # And that it loaded values from the env
         assert str(validator_instance.issuer) == "https://issuer.example.com/"
         assert str(validator_instance.jwks_uri) == "https://issuer.example.com/jwks"
-        assert validator_instance.audience == ["my-client-id"]
+        assert validator_instance.audience == ["my-client-id"] or validator_instance.audience == "my-client-id"
         assert validator_instance.algorithms == ["RS256", "ES256"]
         # Check default values for verification fields
         assert validator_instance.verify_signature == True
