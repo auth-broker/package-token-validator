@@ -22,7 +22,7 @@ class OIDCTokenValidator(TokenValidatorBase[ValidatedOIDCClaims]):
 
     issuer: HttpUrl
     jwks_uri: AnyHttpUrl
-    audience: str | list[str]
+    audience: list[str]
     algorithms: list[str] = Field(default_factory=lambda: ["RS256"])
 
     verify_signature: bool = Field(

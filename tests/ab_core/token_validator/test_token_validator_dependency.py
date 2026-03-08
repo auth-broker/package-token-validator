@@ -13,7 +13,7 @@ def test_token_validator_dependency():
             "TOKEN_VALIDATOR_TYPE": "OIDC",
             "TOKEN_VALIDATOR_OIDC_ISSUER": "https://issuer.example.com",
             "TOKEN_VALIDATOR_OIDC_JWKS_URI": "https://issuer.example.com/jwks",
-            "TOKEN_VALIDATOR_OIDC_AUDIENCE": "my-client-id",
+            "TOKEN_VALIDATOR_OIDC_AUDIENCE": '["my-client-id"]',
             "TOKEN_VALIDATOR_OIDC_ALGORITHMS": '["RS256","ES256"]',
         },
         clear=False,
