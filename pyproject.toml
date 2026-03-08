@@ -25,13 +25,13 @@ dependencies = [
   "pydantic>=2.11.7,<3",
   "uuid7>=0.1.0,<0.2",
   "yarl>=1.20.1,<2",
-  "pyjwt>=2.11.0",
+  "pyjwt[cryptography]>=2.11.0",
 ]
 description = ""
 name = "ab-token-validator"
 readme = "README.md"
 requires-python = ">=3.12, <4"
-version = "0.2.0"
+version = "0.2.1"
 
 [tool.hatch.build.targets.sdist]
 include = ["src/ab_core"]
